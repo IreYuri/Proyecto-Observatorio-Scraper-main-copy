@@ -1,0 +1,11 @@
+# Nunca subir la key real
+.env
+
+# Resultados del scraping (videos y CSVs) -> pesan mucho, no van al repositorio
+videosYT/
+
+# Entorno virtual de Python
+venv/
+env/
+__pycache__/
+*.pyc
