@@ -42,7 +42,7 @@ def canal_id_por_handle(handle):
     return items[0]["id"] if items else None
 
 
-def buscar_videos(query=None, max_videos=50, category_id=None, channel_id=None):
+def buscar_videos(query=None, max_videos=50, category_id=None, channel_id=None, region_code="PE"):
     """IDs de videos (por consulta o por canal), publicados en los últimos 3 años."""
     print(f"Buscando videos para: '{query or channel_id}'...")
     encontrados = []
@@ -53,7 +53,7 @@ def buscar_videos(query=None, max_videos=50, category_id=None, channel_id=None):
     while len(encontrados) < max_videos:
         try:
             kwargs = dict(part="id", type="video", publishedAfter=desde,
-                          regionCode="PE", relevanceLanguage="es",
+                          regionCode=region_code, relevanceLanguage="es",
                           maxResults=min(50, max_videos - len(encontrados)))
             if query:
                 kwargs["q"] = query
@@ -89,7 +89,7 @@ def _duracion_iso8601_a_segundos(duracion):
     return horas * 3600 + minutos * 60 + segundos
 
 
-def top_por_comentarios(video_ids, top_n=5):
+def top_por_comentarios(video_ids, top_n=5, palabras_clave=None):
     """Los top_n videos con más comentarios (videos.list admite 50 IDs por llamada).
 
     Se pide contentDetails en la misma llamada (sin costo extra de cuota) para
@@ -106,9 +106,24 @@ def top_por_comentarios(video_ids, top_n=5):
             for item in response.get("items", []):
                 duracion_seg = _duracion_iso8601_a_segundos(
                     item.get("contentDetails", {}).get("duration"))
+                
+                # Filtrar Shorts y videos muy cortos (<= 60 segundos)
+                if duracion_seg <= 60:
+                    continue
+
+                titulo = item.get("snippet", {}).get("title", "Sin título")
+                canal = item.get("snippet", {}).get("channelTitle", "")
+                descripcion = item.get("snippet", {}).get("description", "")
+
+                # Filtrar por palabras clave en título, canal O descripción
+                if palabras_clave:
+                    texto_completo = (titulo + " " + canal + " " + descripcion).lower()
+                    if not any(palabra.lower() in texto_completo for palabra in palabras_clave):
+                        continue
+
                 stats.append({
                     "video_id": item.get("id"),
-                    "titulo": item.get("snippet", {}).get("title", "Sin título"),
+                    "titulo": titulo,
                     "comentarios": int(item.get("statistics", {}).get("commentCount", 0)),
                     "duracion_seg": duracion_seg,
                     "duracion_min": round(duracion_seg / 60, 1),
