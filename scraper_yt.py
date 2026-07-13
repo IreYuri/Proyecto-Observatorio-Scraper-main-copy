@@ -89,7 +89,7 @@ def _duracion_iso8601_a_segundos(duracion):
     return horas * 3600 + minutos * 60 + segundos
 
 
-def top_por_comentarios(video_ids, top_n=5, palabras_clave=None):
+def top_por_comentarios(video_ids, top_n=5, palabras_clave=None, min_comentarios=0, palabras_tema=None):
     """Los top_n videos con más comentarios (videos.list admite 50 IDs por llamada).
 
     Se pide contentDetails en la misma llamada (sin costo extra de cuota) para
@@ -114,17 +114,37 @@ def top_por_comentarios(video_ids, top_n=5, palabras_clave=None):
                 titulo = item.get("snippet", {}).get("title", "Sin título")
                 canal = item.get("snippet", {}).get("channelTitle", "")
                 descripcion = item.get("snippet", {}).get("description", "")
+                texto_completo = (titulo + " " + canal + " " + descripcion).lower()
 
-                # Filtrar por palabras clave en título, canal O descripción
+                # Normalizar tildes para evitar falsos negativos (ej. "inscripción" vs "inscripcion")
+                tildes = {"á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u", "ü": "u"}
+                for con_tilde, sin_tilde in tildes.items():
+                    texto_completo = texto_completo.replace(con_tilde, sin_tilde)
+
+                # Filtro 1: ¿Menciona la institución? (título, canal o descripción)
                 if palabras_clave:
-                    texto_completo = (titulo + " " + canal + " " + descripcion).lower()
-                    if not any(palabra.lower() in texto_completo for palabra in palabras_clave):
+                    # Normalizar también las palabras clave
+                    claves_norm = [p.lower().replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u") for p in palabras_clave]
+                    if not any(palabra in texto_completo for palabra in claves_norm):
                         continue
+
+                # Filtro 2: ¿Menciona el tema del bloque?
+                if palabras_tema:
+                    temas_norm = [p.lower().replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u") for p in palabras_tema]
+                    
+                    if not any(tema in texto_completo for tema in temas_norm):
+                        continue
+
+                num_comentarios = int(item.get("statistics", {}).get("commentCount", 0))
+
+                # Filtrar videos con pocos comentarios
+                if num_comentarios < min_comentarios:
+                    continue
 
                 stats.append({
                     "video_id": item.get("id"),
                     "titulo": titulo,
-                    "comentarios": int(item.get("statistics", {}).get("commentCount", 0)),
+                    "comentarios": num_comentarios,
                     "duracion_seg": duracion_seg,
                     "duracion_min": round(duracion_seg / 60, 1),
                 })

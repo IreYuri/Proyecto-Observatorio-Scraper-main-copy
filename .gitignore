@@ -9,3 +9,4 @@ venv/
 env/
 __pycache__/
 *.pyc
+registro_avance_equipo.csv

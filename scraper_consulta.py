@@ -34,53 +34,58 @@ CODIGOS_PAIS = {
 }
 
 # --- Bloques de búsqueda: cubren las 12 etiquetas de la guía en 6 corridas ---
-# Cambia BLOQUE_ACTUAL y vuelve a correr el script para cada bloque.
+# Cada bloque tiene una LISTA de búsquedas cortas (1-2 palabras cada una).
+# El script buscará cada término POR SEPARADO con cada nombre de NOMBRES_BUSQUEDA.
+# Ejemplo: ["beca", "costo"] con ["UBA", "Univ..."] genera 4 búsquedas independientes.
 BLOQUES = {
-    "Ingreso":     ("matricula admision inscripcion", "Matricula, Admision"),
-    "Dinero":      ("pension beca costo", "Costo, Beca"),
-    "Programas":   ("carreras maestria posgrado", "Carrera, Postgrado"),
-    "Calidad":     ("acreditacion docentes", "CalidadAcademica, Docente"),
-    "Vida_Campus": ("campus laboratorios vida universitaria", "Infraestructura, VidaUniversitaria"),
-    "Experiencia": ("modalidad virtual experiencia estudiante", "Modalidad, Testimonio"),
+    "Ingreso":     (["admision inscripcion", "matricula CBC"], "Matricula, Admision"),
+    "Dinero":      (["beca", "costo estudiar", "apuntes"], "Costo, Beca"),
+    "Programas":   (["carreras", "maestria posgrado", "plan de estudios", "que estudiar"], "Carrera, Postgrado"),
+    "Calidad":     (["ranking", "exigencia", "exigente", "dificultad", "dificil", "nivel", "prestigio", "mejores"], "CalidadAcademica, Docente"),
+    "Vida_Campus": (["sedes", "ciudad universitaria", "instalaciones"], "Infraestructura, VidaUniversitaria"),
+    "Experiencia": (["mi experiencia", "estudiar en", "UBA XXI"], "Modalidad, Testimonio"),
 }
-BLOQUE_ACTUAL = "Ingreso"  # <- cambia esto en cada corrida: Ingreso / Dinero / Programas / Calidad / Vida_Campus / Experiencia
+BLOQUE_ACTUAL = "Vida_Campus"  # <- cambia esto en cada corrida: Ingreso / Dinero / Programas / Calidad / Vida_Campus / Experiencia
 
-# Valores reducidos para la PRIMERA PRUEBA (barato en cuota).
-# Cuando confirmes que todo funciona, puedes subir estos números.
-MAX_VIDEOS = 50
+# Cuántos videos traer POR CADA sub-consulta y cuántos descargar al final.
+MAX_VIDEOS = 80
 TOP_N = 10
+MIN_COMENTARIOS = 75  # Límite estricto del proyecto
 
 if __name__ == "__main__":
-    terminos, etiquetas_cubiertas = BLOQUES[BLOQUE_ACTUAL]
+    terminos_lista, etiquetas_cubiertas = BLOQUES[BLOQUE_ACTUAL]
     region = CODIGOS_PAIS.get(PAIS, "PE")
 
     print(f"Bloque: {BLOQUE_ACTUAL} (cubre etiquetas: {etiquetas_cubiertas})")
     print(f"Región de búsqueda: {PAIS} ({region})")
     print(f"Nombres de búsqueda: {NOMBRES_BUSQUEDA}")
+    print(f"Términos del bloque: {terminos_lista}")
 
-    # Buscar con cada nombre/alias por separado y combinar resultados sin duplicados.
-    # Esto imita lo que harías tú buscando "UBA admision" y luego
-    # "Universidad de Buenos Aires admision" manualmente en YouTube.
+    # Buscar con cada combinación de nombre × término por separado.
+    # Esto imita lo que harías tú buscando "UBA beca", luego "UBA costo",
+    # luego "Universidad de Buenos Aires beca", etc.
     todos_los_ids = []
     vistos = set()
     for nombre in NOMBRES_BUSQUEDA:
-        consulta = f"{nombre} {terminos}"
-        print(f"\n--- Buscando: '{consulta}' ---")
-        ids = buscar_videos(query=consulta, max_videos=MAX_VIDEOS, region_code=region)
-        nuevos = 0
-        for vid_id in ids:
-            if vid_id not in vistos:
-                vistos.add(vid_id)
-                todos_los_ids.append(vid_id)
-                nuevos += 1
-        print(f"  -> {nuevos} videos nuevos (no duplicados)")
+        for terminos in terminos_lista:
+            consulta = f"{nombre} {terminos}"
+            print(f"\n--- Buscando: '{consulta}' ---")
+            ids = buscar_videos(query=consulta, max_videos=MAX_VIDEOS, region_code=region)
+            nuevos = 0
+            for vid_id in ids:
+                if vid_id not in vistos:
+                    vistos.add(vid_id)
+                    todos_los_ids.append(vid_id)
+                    nuevos += 1
+            print(f"  -> {nuevos} videos nuevos (no duplicados)")
 
     print(f"\n>>> Total: {len(todos_los_ids)} videos únicos encontrados.")
 
     if not todos_los_ids:
         raise SystemExit("Sin IDs válidos para explorar.")
 
-    top_videos = top_por_comentarios(todos_los_ids, TOP_N, palabras_clave=NOMBRES_BUSQUEDA)
+    top_videos = top_por_comentarios(todos_los_ids, TOP_N, palabras_clave=NOMBRES_BUSQUEDA,
+                                     min_comentarios=MIN_COMENTARIOS, palabras_tema=terminos_lista)
     if not top_videos:
         raise SystemExit("No se pudieron obtener estadísticas.")
 
