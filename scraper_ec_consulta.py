@@ -18,14 +18,14 @@ from scraper_yt import buscar_videos, procesar_corrida, top_por_comentarios
 
 # --- Configuración de quién corre esto (para el registro de equipo) ---
 PERSONA = "Steffi_Yurivilca"        # reemplaza con tu nombre, tal como en el Sheet
-PAIS = "Colombia"                      # país asignado
-INSTITUCION = "Universidad Tecnológica de Pereira"  # nombre oficial para el registro
+PAIS = "Ecuador"                      # país asignado
+INSTITUCION = "Escuela Superior Politécnica del Litoral"  # nombre oficial para el registro
 
 # Nombres con los que la gente busca esta universidad en YouTube.
 # El script buscará con CADA uno de estos nombres por separado y combinará
 # los resultados. También se usan como filtro: un video que no mencione
 # ninguno de estos nombres (en título, canal o descripción) se descarta.
-NOMBRES_BUSQUEDA = ["Universidad Tecnológica de Pereira", "UTP"]
+NOMBRES_BUSQUEDA = [ "Escuela Superior Politécnica del Litoral", "ESPOL", "ESPOL Ecuador"]
 
 # Mapeo de país a código ISO 3166-1 alpha-2 (lo que usa la API de YouTube)
 CODIGOS_PAIS = {
@@ -39,14 +39,14 @@ CODIGOS_PAIS = {
 # El script buscará cada término POR SEPARADO con cada nombre de NOMBRES_BUSQUEDA.
 # Ejemplo: ["beca", "costo"] con ["UBA", "Univ..."] genera 4 búsquedas independientes.
 BLOQUES = {
-    "Ingreso":     (["admision inscripcion", "matricula CBC"], "Matricula, Admision"),
-    "Dinero":      (["beca", "costo estudiar", "apuntes"], "Costo, Beca"),
-    "Programas":   (["carreras", "maestria posgrado", "plan de estudios", "que estudiar"], "Carrera, Postgrado"),
-    "Calidad":     (["ranking", "exigencia", "exigente", "dificultad", "dificil", "nivel", "prestigio", "mejores"], "CalidadAcademica, Docente"),
-    "Vida_Campus": (["sedes", "ciudad universitaria", "instalaciones"], "Infraestructura, VidaUniversitaria"),
-    "Experiencia": (["mi experiencia", "estudiar en", "UBA XXI"], "Modalidad, Testimonio"),
+    "Ingreso":     (["admisión", "proceso de admisión", "inscripciones", "requisitos", "cómo ingresar", "fechas de inscripción", "prueba de ingreso" ], "Matricula, Admision"),
+    "Dinero":      (["becas", "aranceles", "costo","cuánto cuesta","valor semestre", "financiación"], "Costo, Beca"),
+    "Programas":   (["carreras","grado","licenciatura","posgrados","especializaciones","maestrías","doctorados"], "Carrera, Postgrado"),
+    "Calidad":     (["ranking", "acreditación" , "prestigio", "investigación", "exigencia", "calidad académica", "innovación", "nivel", "prestigio", "mejores"], "CalidadAcademica, Docente"),
+    "Vida_Campus": (["campus","vida universitaria", "laboratorios", "biblioteca","ciudad universitaria", "instalaciones", "intercambio"], "Infraestructura, VidaUniversitaria"),
+    "Experiencia": ([ "mi experiencia","cómo es estudiar","estudiar en ESPOL","opiniones", "vlog","testimonio"], "Modalidad, Testimonio"),
 }
-BLOQUE_ACTUAL = "Vida_Campus"  # <- cambia esto en cada corrida: Ingreso / Dinero / Programas / Calidad / Vida_Campus / Experiencia
+BLOQUE_ACTUAL = "Dinero"  # <- cambia esto en cada corrida: Ingreso / Dinero / Programas / Calidad / Vida_Campus / Experiencia
 
 # Cuántos videos traer POR CADA sub-consulta y cuántos descargar al final.
 MAX_VIDEOS = 80
@@ -55,7 +55,7 @@ MIN_COMENTARIOS = 75  # Límite estricto del proyecto
 
 if __name__ == "__main__":
     terminos_lista, etiquetas_cubiertas = BLOQUES[BLOQUE_ACTUAL]
-    region = CODIGOS_PAIS.get(PAIS, "CO")
+    region = CODIGOS_PAIS.get(PAIS, "EC")
 
     print(f"Bloque: {BLOQUE_ACTUAL} (cubre etiquetas: {etiquetas_cubiertas})")
     print(f"Región de búsqueda: {PAIS} ({region})")

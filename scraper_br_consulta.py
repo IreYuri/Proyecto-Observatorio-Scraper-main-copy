@@ -18,20 +18,20 @@ from scraper_yt import buscar_videos, procesar_corrida, top_por_comentarios
 
 # --- Configuración de quién corre esto (para el registro de equipo) ---
 PERSONA = "Steffi_Yurivilca"        # reemplaza con tu nombre, tal como en el Sheet
-PAIS = "Colombia"                      # país asignado
-INSTITUCION = "Universidad Tecnológica de Pereira"  # nombre oficial para el registro
+PAIS = "Brasil"                      # país asignado
+INSTITUCION = "Universidade Estadual de Campinas"  # nombre oficial para el registro
 
 # Nombres con los que la gente busca esta universidad en YouTube.
 # El script buscará con CADA uno de estos nombres por separado y combinará
 # los resultados. También se usan como filtro: un video que no mencione
 # ninguno de estos nombres (en título, canal o descripción) se descarta.
-NOMBRES_BUSQUEDA = ["Universidad Tecnológica de Pereira", "UTP"]
+NOMBRES_BUSQUEDA = ["Universidade Estadual de Campinas", "UNICAMP"]
 
 # Mapeo de país a código ISO 3166-1 alpha-2 (lo que usa la API de YouTube)
 CODIGOS_PAIS = {
     "Peru": "PE", "Colombia": "CO", "Chile": "CL", "Argentina": "AR",
     "Mexico": "MX", "España": "ES", "Ecuador": "EC", "Bolivia": "BO",
-    "Uruguay":"UR",
+    "Uruguay":"UR", "Brasil": "BR",
 }
 
 # --- Bloques de búsqueda: cubren las 12 etiquetas de la guía en 6 corridas ---
@@ -39,14 +39,14 @@ CODIGOS_PAIS = {
 # El script buscará cada término POR SEPARADO con cada nombre de NOMBRES_BUSQUEDA.
 # Ejemplo: ["beca", "costo"] con ["UBA", "Univ..."] genera 4 búsquedas independientes.
 BLOQUES = {
-    "Ingreso":     (["admision inscripcion", "matricula CBC"], "Matricula, Admision"),
-    "Dinero":      (["beca", "costo estudiar", "apuntes"], "Costo, Beca"),
-    "Programas":   (["carreras", "maestria posgrado", "plan de estudios", "que estudiar"], "Carrera, Postgrado"),
-    "Calidad":     (["ranking", "exigencia", "exigente", "dificultad", "dificil", "nivel", "prestigio", "mejores"], "CalidadAcademica, Docente"),
-    "Vida_Campus": (["sedes", "ciudad universitaria", "instalaciones"], "Infraestructura, VidaUniversitaria"),
-    "Experiencia": (["mi experiencia", "estudiar en", "UBA XXI"], "Modalidad, Testimonio"),
+    "Ingreso":     (["vestibular", "ingresso","processo seletivo","inscrição vestibular","como entrar na UNICAMP","como ingressar na UNICAMP","prova UNICAMP","enem UNICAMP","candidato UNICAMP","resultado vestibular" ], "Matricula, Admision"),
+    "Dinero":      (["bolsas","bolsa de estudos","auxílio financeiro","assistência estudantil","benefícios estudantis","custo de vida","quanto custa estudar na UNICAMP", "mensalidade UNICAMP","taxa de matrícula","financiamento estudantil"], "Costo, Beca"),
+    "Programas":   (["cursos UNICAMP","graduação","curso de graduação","bacharelado","licenciatura","engenharia UNICAMP","medicina UNICAMP","pós-graduação","mestrado","doutorado","especialização"], "Carrera, Postgrado"),
+    "Calidad":     (["ranking UNICAMP","melhor universidade","qualidade acadêmica","excelência acadêmica","pesquisa científica","inovação","produção científica","reconhecimento internacional","avaliação universitária","universidade pública de excelência"], "CalidadAcademica, Docente"),
+    "Vida_Campus": (["campus UNICAMP","vida universitária","moradia estudantil","biblioteca UNICAMP","laboratórios UNICAMP","infraestrutura UNICAMP","cidade universitária","intercâmbio UNICAMP","estudantes UNICAMP","rotina universitária"], "Infraestructura, VidaUniversitaria"),
+    "Experiencia": (["minha experiência na UNICAMP","estudar na UNICAMP","como é estudar na UNICAMP","vlog UNICAMP","dia de estudante UNICAMP","depoimento aluno UNICAMP","experiência universitária","calouro UNICAMP","minha rotina UNICAMP"], "Modalidad, Testimonio"),
 }
-BLOQUE_ACTUAL = "Vida_Campus"  # <- cambia esto en cada corrida: Ingreso / Dinero / Programas / Calidad / Vida_Campus / Experiencia
+BLOQUE_ACTUAL = "Experiencia"  # <- cambia esto en cada corrida: Ingreso / Dinero / Programas / Calidad / Vida_Campus / Experiencia
 
 # Cuántos videos traer POR CADA sub-consulta y cuántos descargar al final.
 MAX_VIDEOS = 80
@@ -55,7 +55,7 @@ MIN_COMENTARIOS = 75  # Límite estricto del proyecto
 
 if __name__ == "__main__":
     terminos_lista, etiquetas_cubiertas = BLOQUES[BLOQUE_ACTUAL]
-    region = CODIGOS_PAIS.get(PAIS, "CO")
+    region = CODIGOS_PAIS.get(PAIS, "BR")
 
     print(f"Bloque: {BLOQUE_ACTUAL} (cubre etiquetas: {etiquetas_cubiertas})")
     print(f"Región de búsqueda: {PAIS} ({region})")
